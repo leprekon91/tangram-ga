@@ -1,5 +1,5 @@
 from tkinter import Tk, X, Label, Canvas, Frame, BOTH
-from tangram import TangramShape, shapeArray
+from tangram import TangramShape, shapeArray, getGenomeFitness
 import math
 
 canvas_padding = 20
@@ -36,6 +36,7 @@ class CreateCanvas(Frame):
         ]
 
         drawGenome(canvas, example_genome)
+        getGenomeFitness(example_genome)
         canvas.pack(fill=BOTH, expand=1)
 
 
