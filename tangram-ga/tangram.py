@@ -1,6 +1,8 @@
 import math
+import random
 import numpy as np
 from scipy.spatial import ConvexHull
+from shapely.geometry import Polygon
 
 # shape object
 
@@ -22,12 +24,12 @@ class TangramShape:
                     (sum([p[1] for p in self.points]) / len(self.points))+Y)
         return centroid
 
-    # get points of shape in position X,Y and self.angle
-    def getRotatedPoints(self, X, Y):
+    # get points of shape in position X,Y and angle
+    def getRotatedPoints(self, X, Y, angle):
         coords = []
         for i in range(len(self.points)):
             coords.append((self.points[i][0]+X, self.points[i][1]+Y))
-        rads = math.radians(self.angle)
+        rads = math.radians(angle)
         cos_val = math.cos(rads)
         sin_val = math.sin(rads)
         cx, cy = self.getCenter(X, Y)
@@ -37,7 +39,7 @@ class TangramShape:
             y_old -= cy
             x_new = x_old * cos_val - y_old * sin_val
             y_new = x_old * sin_val + y_old * cos_val
-            new_points.append([x_new + cx, y_new + cy])
+            new_points.append([roundup(x_new + cx), roundup(y_new + cy)])
         return new_points
 
 
@@ -57,29 +59,55 @@ shapeArray = [bgTri_1, bgTri_2, mdTri, smTri_1, smTri_2, sqr, paral]
 
 
 def getGenomeFitness(genome):
+    fitness = 0
     # get all points of genome
     points = []
     for i in range(len(genome)):
-        shapeArray[i].angle = genome[i][2]
         shape_points = shapeArray[i].getRotatedPoints(
             genome[i][0],
-            genome[i][1]
+            genome[i][1],
+            genome[i][2]
         )
         points = points+shape_points
     # calculate convex hull
-    print(points)
     convex_volume = ConvexHull(np.array(points)).volume
-    print(convex_volume)
+    print(640**2 - convex_volume)
+    # diff the areas
+    fitness += (640**2 - convex_volume)**2
+    # shouldn't be the only thing to compute the fitness
+    # also need to find collisions between shapes
+    print("genome fitness: "+str(roundup(fitness)))
+    print(
+        polygonsIntersect(
+            shapeArray[5].getRotatedPoints(
+                genome[5][0],
+                genome[5][1],
+                genome[5][2]
+            ),
+            shapeArray[2].getRotatedPoints(
+                genome[2][0],
+                genome[2][1],
+                genome[2][2]
+            )
+        )
+    )
 
 
-getGenomeFitness(
-    [
-        [0, 0, 0],
-        [320, -160, 90],
-        [480, 480, 180],
-        [240, 400, 180],
-        [480, 80, 90],
-        [320, 0, 0],
-        [0, 480, 0],
-    ]
-)
+def polygonsIntersect(points1, points2):
+    p1 = Polygon(points1)
+    p2 = Polygon(points2)
+    return p1.intersects(p2)
+
+
+def roundup(x):
+    return int(x)
+
+
+def randomGenome():
+    genome = []
+    for i in range(len(shapeArray)):
+        x = random.randint(0, 480)
+        y = random.randint(-160, 480)
+        a = random.randint(0, 180)
+        genome.append([x, y, a])
+    return genome
