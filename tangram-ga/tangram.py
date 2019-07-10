@@ -71,26 +71,28 @@ def getGenomeFitness(genome):
         points = points+shape_points
     # calculate convex hull
     convex_volume = ConvexHull(np.array(points)).volume
-    print(640**2 - convex_volume)
     # diff the areas
     fitness += (640**2 - convex_volume)**2
     # shouldn't be the only thing to compute the fitness
     # also need to find collisions between shapes
-    print("genome fitness: "+str(roundup(fitness)))
-    print(
-        polygonsIntersect(
-            shapeArray[5].getRotatedPoints(
-                genome[5][0],
-                genome[5][1],
-                genome[5][2]
-            ),
-            shapeArray[2].getRotatedPoints(
-                genome[2][0],
-                genome[2][1],
-                genome[2][2]
-            )
+    intersections = 0
+    for i in range(len(shapeArray)):
+        points_i = shapeArray[i].getRotatedPoints(
+            genome[i][0],
+            genome[i][1],
+            genome[i][2]
         )
-    )
+        for j in range(len(shapeArray)):
+            if i != j:
+                points_j = shapeArray[j].getRotatedPoints(
+                    genome[j][0],
+                    genome[j][1],
+                    genome[j][2]
+                )
+                if polygonsIntersect(points_i, points_j):
+                    intersections += 1
+    fitness += 500*(intersections/2)
+    return roundup(fitness)
 
 
 def polygonsIntersect(points1, points2):

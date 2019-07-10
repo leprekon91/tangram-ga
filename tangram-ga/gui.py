@@ -28,8 +28,14 @@ class CreateCanvas(Frame):
         genome = randomGenome()
 
         drawGenome(canvas, genome)
-        getGenomeFitness(genome)
+        print("genome: "+str(genome))
+
+        w = Label(
+            self.master,
+            text="Fitness: " + str(getGenomeFitness(genome))
+        )
         canvas.pack(fill=BOTH, expand=1)
+        w.pack()
 
 
 def drawGenome(canvas, genome):
