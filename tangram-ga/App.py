@@ -54,4 +54,4 @@ def crossover_operator(parent1, parent2):
 
 
 print_genome(GA(create_genome, cal_fitness,
-                crossover_operator, print_genome, 100))
+                crossover_operator, print_genome, 100,1000))

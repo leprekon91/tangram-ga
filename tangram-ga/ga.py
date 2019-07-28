@@ -10,7 +10,7 @@ def init_population(gene_creator, size):
     return populous
 
 
-def GA(gene_creator, fitness, crossover, print_genome, size):
+def GA(gene_creator, fitness, crossover, print_genome, size,max_generations):
     # current generation
     generation = 1
 
@@ -22,7 +22,7 @@ def GA(gene_creator, fitness, crossover, print_genome, size):
     population = init_population(gene_creator, size)
 
     # GA LOOP:
-    while not found:
+    while not found and generation < max_generations:
         # sort the genomes by their fitness
         population = sorted(population, key=lambda X: fitness(X))
         if fitness(population[0]) <= 0:
@@ -31,14 +31,14 @@ def GA(gene_creator, fitness, crossover, print_genome, size):
 
         new_generation = []
 
-        # Perform Elitism, that mean 10% of fittest population
+        # Perform Elitism, that mean 20% of fittest population
         # goes to the next generation
-        s = int((10*size)/100)
+        s = int((20*size)/100)
         new_generation.extend(population[:s])
 
         # Recreate the population size in new generation,
         # by mating parents from the fittest 50% of the population
-        s = int((90*size)/100)
+        s = int((80*size)/100)
         for _ in range(s):
             parent1 = random.choice(population[:50])
             parent2 = random.choice(population[:50])

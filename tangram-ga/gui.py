@@ -1,5 +1,6 @@
 from tkinter import Tk, X, Label, Canvas, Frame, BOTH
-from tangram import TangramShape, shapeArray, getGenomeFitness, randomGenome
+from tangram import TangramShape, shapeArray, getGenomeFitness, randomGenome, crossover_operator
+from ga import GA
 import math
 
 canvas_padding = 20
@@ -23,22 +24,24 @@ class CreateCanvas(Frame):
             rectangle[i] += canvas_padding
 
         canvas.create_line(rectangle, dash=(4, 2), width=5)
-
-        # draw an example genome
-        genome = randomGenome()
-
-        drawGenome(canvas, genome)
-        print("genome: "+str(genome))
+        solution = GA(randomGenome, getGenomeFitness,crossover_operator, print_genome, 100,1000)
+        # solve genetic algorithm:
+        drawGenome(canvas, solution)
 
         w = Label(
             self.master,
-            text="Fitness: " + str(getGenomeFitness(genome))
+            text="Fitness: " + str(getGenomeFitness(solution))
         )
         canvas.pack(fill=BOTH, expand=1)
         w.pack()
 
 
+def print_genome(genome):
+    print(str(genome))
+
+
 def drawGenome(canvas, genome):
+
     for i in range(len(genome)):
         points = shapeArray[i].getRotatedPoints(
             genome[i][0]+canvas_padding,

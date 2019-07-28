@@ -5,6 +5,7 @@ from scipy.spatial import ConvexHull
 from shapely.geometry import Polygon
 
 # shape object
+MUTATION_PROB = 0.3
 
 
 class TangramShape:
@@ -73,6 +74,8 @@ def getGenomeFitness(genome):
             genome[i][2]
         )
         points = points+shape_points
+    out_of_bounds_points = len(list(filter(filterOutOfBounds, points)))
+    fitness += out_of_bounds_points * 500
     # calculate convex hull
     convex_volume = ConvexHull(np.array(points)).volume
     # diff the areas
@@ -99,16 +102,27 @@ def getGenomeFitness(genome):
     return roundup(fitness)
 
 # check if two polygons intersect
+
+
 def polygonsIntersect(points1, points2):
     p1 = Polygon(points1)
     p2 = Polygon(points2)
     return p1.intersects(p2)
 
-#roundup a double number
+
+def filterOutOfBounds(point):
+    if point[0] > 640 or point[0] < 0:
+        return True
+    if point[1] > 640 or point[1] < 0:
+        return True
+
+
 def roundup(x):
     return int(x)
 
-#generate a random shape genome
+# generate a random shape genome
+
+
 def randomGenome():
     genome = []
     for i in range(len(shapeArray)):
@@ -117,3 +131,30 @@ def randomGenome():
         a = random.randint(0, 180)
         genome.append([x, y, a])
     return genome
+
+
+def mutated_genes():
+    x = random.randint(0, 480)
+    y = random.randint(-160, 480)
+    a = random.randint(0, 180)
+    return [x, y, a]
+
+
+def crossover_operator(parent1, parent2):
+    child_chromosome = []
+    for gp1, gp2 in zip(parent1, parent2):
+        prob = random.random()
+
+        # if prob is less than half of the unmutated probability, insert gene
+        # from parent 1
+        if prob < (1-MUTATION_PROB)/2:
+            child_chromosome.append(gp1)
+
+        # if prob is the other half, insert
+        # gene from parent 2
+        elif prob < 1-MUTATION_PROB:
+            child_chromosome.append(gp2)
+        # Mutate with MUTATION_PROB probability
+        else:
+            child_chromosome.append(mutated_genes())
+    return child_chromosome
