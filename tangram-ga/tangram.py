@@ -57,6 +57,10 @@ paral = TangramShape([(0, 160), (160, 0), (480, 0),
 
 shapeArray = [bgTri_1, bgTri_2, mdTri, smTri_1, smTri_2, sqr, paral]
 
+#
+# getGenomeFitness - receive a fitness number that should be minimized.
+#
+
 
 def getGenomeFitness(genome):
     fitness = 0
@@ -94,17 +98,17 @@ def getGenomeFitness(genome):
     fitness += 500*(intersections/2)
     return roundup(fitness)
 
-
+# check if two polygons intersect
 def polygonsIntersect(points1, points2):
     p1 = Polygon(points1)
     p2 = Polygon(points2)
     return p1.intersects(p2)
 
-
+#roundup a double number
 def roundup(x):
     return int(x)
 
-
+#generate a random shape genome
 def randomGenome():
     genome = []
     for i in range(len(shapeArray)):
