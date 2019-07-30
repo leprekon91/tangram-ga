@@ -1,6 +1,9 @@
 # General GA Implementation
 import random
+import numpy as np
 
+ELITISM = .1
+MUTATION_PROB = .1
 
 def init_population(gene_creator, size):
     populous = []
@@ -20,6 +23,8 @@ def GA(gene_creator, fitness, crossover, print_genome, size,max_generations):
     # initialize population
     population = []
     population = init_population(gene_creator, size)
+    x=np.array([])
+    y= np.array([])
 
     # GA LOOP:
     while not found and generation < max_generations:
@@ -33,23 +38,24 @@ def GA(gene_creator, fitness, crossover, print_genome, size,max_generations):
 
         # Perform Elitism, that mean 20% of fittest population
         # goes to the next generation
-        s = int((20*size)/100)
+        s = int(ELITISM*size)
         new_generation.extend(population[:s])
 
         # Recreate the population size in new generation,
         # by mating parents from the fittest 50% of the population
-        s = int((80*size)/100)
+        s = int((1-ELITISM)*size)
         for _ in range(s):
             parent1 = random.choice(population[:50])
             parent2 = random.choice(population[:50])
-            child = crossover(parent1, parent2)
+            child = crossover(parent1, parent2,MUTATION_PROB)
             new_generation.append(child)
 
         population = new_generation
 
         print("Generation #{}\tFitness: {}\n".format(
             generation, str(fitness(population[0]))))
-        print_genome(population[0])
+        
+        #print_genome(population[0])
 
         generation += 1
 

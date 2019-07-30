@@ -24,13 +24,20 @@ class CreateCanvas(Frame):
             rectangle[i] += canvas_padding
 
         canvas.create_line(rectangle, dash=(4, 2), width=5)
-        solution = GA(randomGenome, getGenomeFitness,crossover_operator, print_genome, 100,1000)
         # solve genetic algorithm:
+        solution = GA(
+                    randomGenome,
+                    getGenomeFitness,
+                    crossover_operator,
+                    print_genome,
+                    10,
+                    5
+                )
         drawGenome(canvas, solution)
 
         w = Label(
             self.master,
-            text="Fitness: " + str(getGenomeFitness(solution))
+            text="Fitness: " + str(getGenomeFitness(solution)),
         )
         canvas.pack(fill=BOTH, expand=1)
         w.pack()
@@ -51,7 +58,7 @@ def drawGenome(canvas, genome):
         canvas.create_polygon(
             points,
             outline="#000",
-            fill=shapeArray[i].color
+            fill=shapeArray[i].color,
         )
 
 

@@ -33,19 +33,19 @@ def cal_fitness(genome):
     return fitness
 
 
-def crossover_operator(parent1, parent2):
+def crossover_operator(parent1, parent2, mutation_prob):
     child_chromosome = []
     for gp1, gp2 in zip(parent1, parent2):
         prob = random.random()
 
         # if prob is less than 0.45, insert gene
         # from parent 1
-        if prob < 0.45:
+        if prob < (1-mutation_prob)/2:
             child_chromosome.append(gp1)
 
         # if prob is between 0.45 and 0.90, insert
         # gene from parent 2
-        elif prob < 0.90:
+        elif prob < 1-mutation_prob:
             child_chromosome.append(gp2)
         # Mutate with 0.1 probability
         else:
@@ -54,4 +54,4 @@ def crossover_operator(parent1, parent2):
 
 
 print_genome(GA(create_genome, cal_fitness,
-                crossover_operator, print_genome, 100,1000))
+                crossover_operator, print_genome, 100, 1000))

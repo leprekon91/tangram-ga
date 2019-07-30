@@ -3,22 +3,13 @@ import random
 import numpy as np
 from scipy.spatial import ConvexHull
 from shapely.geometry import Polygon
-
-# shape object
-MUTATION_PROB = 0.3
-
+from functools import reduce
 
 class TangramShape:
     def __init__(self, points, color, angle):
         self.points = points
         self.color = color
         self.angle = angle
-        self.posX = 0
-        self.posY = 0
-
-    def setPosition(self, x, y):
-        self.posX = x
-        self.posY = y
 
     def getCenter(self, X, Y):
         centroid = ((sum([p[0] for p in self.points]) / len(self.points))+X,
@@ -40,7 +31,7 @@ class TangramShape:
             y_old -= cy
             x_new = x_old * cos_val - y_old * sin_val
             y_new = x_old * sin_val + y_old * cos_val
-            new_points.append([roundup(x_new + cx), roundup(y_new + cy)])
+            new_points.append([x_new + cx, y_new + cy])
         return new_points
 
 
@@ -58,13 +49,11 @@ paral = TangramShape([(0, 160), (160, 0), (480, 0),
 
 shapeArray = [bgTri_1, bgTri_2, mdTri, smTri_1, smTri_2, sqr, paral]
 
-#
-# getGenomeFitness - receive a fitness number that should be minimized.
-#
-
 
 def getGenomeFitness(genome):
+    # receive a fitness number that should be zero if the sokution is correct.
     fitness = 0
+
     # get all points of genome
     points = []
     for i in range(len(genome)):
@@ -74,15 +63,22 @@ def getGenomeFitness(genome):
             genome[i][2]
         )
         points = points+shape_points
-    out_of_bounds_points = len(list(filter(filterOutOfBounds, points)))
-    fitness += out_of_bounds_points * 500
-    # calculate convex hull
+
+    # calculate distance of all points that are out of bounds of the square
+    out_of_bounds_distances = map(filterOutOfBounds, points)
+    fitness += sum(out_of_bounds_distances)
+
+    # calculate convex hull volume and add
+    # the diffrence from the square to the fitness value
     convex_volume = ConvexHull(np.array(points)).volume
     # diff the areas
-    fitness += (640**2 - convex_volume)**2
-    # shouldn't be the only thing to compute the fitness
-    # also need to find collisions between shapes
-    intersections = 0
+    volume_diff = (convex_volume - (640**2))
+    if volume_diff < 0:
+        volume_diff *= -1
+    fitness += volume_diff
+
+    # find and sum all intersections areas between shapes and add it to the fitness
+    intersections_area = 0
     for i in range(len(shapeArray)):
         points_i = shapeArray[i].getRotatedPoints(
             genome[i][0],
@@ -96,63 +92,63 @@ def getGenomeFitness(genome):
                     genome[j][1],
                     genome[j][2]
                 )
-                if polygonsIntersect(points_i, points_j):
-                    intersections += 1
-    fitness += 500*(intersections/2)
-    return roundup(fitness)
-
-# check if two polygons intersect
-
+                intersections_area += polygonsIntersect(points_i, points_j)
+    fitness += intersections_area
+    return fitness
 
 def polygonsIntersect(points1, points2):
+    # calculate intersection area between two polygons
     p1 = Polygon(points1)
     p2 = Polygon(points2)
-    return p1.intersects(p2)
-
+    return p1.intersection(p2).area
 
 def filterOutOfBounds(point):
-    if point[0] > 640 or point[0] < 0:
-        return True
-    if point[1] > 640 or point[1] < 0:
-        return True
-
+    # if a point is out of the square,
+    # calculate the distance in x and y and return a sum
+    distance = 0
+    if point[0] > 650:
+        distance += point[0]-650
+    if point[0] < 0:
+        distance += (point[0]*-1)-10
+    if point[1] > 650:
+        distance += point[1]-650
+    if point[1] < -10:
+        distance += (point[0]*-1)-10
+    return distance
 
 def roundup(x):
+    # roundup a float number to integer value
     return int(x)
 
-# generate a random shape genome
-
-
-def randomGenome():
-    genome = []
-    for i in range(len(shapeArray)):
-        x = random.randint(0, 480)
-        y = random.randint(-160, 480)
-        a = random.randint(0, 180)
-        genome.append([x, y, a])
-    return genome
-
-
 def mutated_genes():
+    #random shape generator
+    possible_angles = [0,15,30,45,60,75,90,105,120,135,150,165,180]
     x = random.randint(0, 480)
     y = random.randint(-160, 480)
-    a = random.randint(0, 180)
+    a = possible_angles[random.randint(0, 12)]
     return [x, y, a]
 
+def randomGenome():
+    # random genome generator
+    genome = []
+    for i in range(len(shapeArray)):
+        genome.append(mutated_genes())
+    return genome
 
-def crossover_operator(parent1, parent2):
+def crossover_operator(parent1, parent2,mutation_prob):
+    # crossover operator
     child_chromosome = []
     for gp1, gp2 in zip(parent1, parent2):
         prob = random.random()
 
         # if prob is less than half of the unmutated probability, insert gene
         # from parent 1
-        if prob < (1-MUTATION_PROB)/2:
+        if prob < (1-mutation_prob)/2:
             child_chromosome.append(gp1)
 
         # if prob is the other half, insert
         # gene from parent 2
-        elif prob < 1-MUTATION_PROB:
+        elif prob < 1-mutation_prob:
             child_chromosome.append(gp2)
         # Mutate with MUTATION_PROB probability
         else:
