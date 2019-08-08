@@ -31,7 +31,7 @@ class CreateCanvas(Frame):
                     crossover_operator,
                     print_genome,
                     10,
-                    5
+                    100
                 )
         drawGenome(canvas, solution)
 

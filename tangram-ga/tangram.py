@@ -72,9 +72,7 @@ def getGenomeFitness(genome):
     # the diffrence from the square to the fitness value
     convex_volume = ConvexHull(np.array(points)).volume
     # diff the areas
-    volume_diff = (convex_volume - (640**2))
-    if volume_diff < 0:
-        volume_diff *= -1
+    volume_diff = abs(convex_volume - (640**2))
     fitness += volume_diff
 
     # find and sum all intersections areas between shapes and add it to the fitness
